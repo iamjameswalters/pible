@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Literal
 try:
     import ujson as json
 except ImportError:
@@ -84,7 +83,7 @@ BIBLE_BOOKS = tuple(BIBLE_CHAPTERS.keys())
 JSON_FILES = {book: f"{book.replace(' ', '')}.json" for book in BIBLE_BOOKS}
 
 class BibleVerse:
-    def __init__(self, book: Literal[BIBLE_BOOKS], chapter: Integer, verse: Integer, text: String, translation: Literal(BIBLE_TRANSLATIONS) = "KJV", api_key: String|None = None):
+    def __init__(self, book: str, chapter: int, verse: int, text: str, translation: str = "KJV", api_key: str|None = None):
         if translation not in BIBLE_TRANSLATIONS:
             raise ValueError(f"{translation} is not a supported translation. Please choose KJV or ESV.")
         self.translation = translation
@@ -107,7 +106,7 @@ class BibleVerse:
         return BibleChapter(self.book_title, self.chapter_number, self.translation, self.api_key)
 
 class BibleChapter:
-    def __init__(self, book: Literal[BIBLE_BOOKS], chapter: Integer, translation: Literal(BIBLE_TRANSLATIONS) = "KJV", api_key: String|None = None):
+    def __init__(self, book: str, chapter: int, translation: str = "KJV", api_key: str|None = None):
         if translation not in BIBLE_TRANSLATIONS:
             raise ValueError(f"{translation} is not a supported translation. Please choose KJV or ESV.")
         self.translation = translation
@@ -158,16 +157,16 @@ class BibleChapter:
 
 
 class BibleBook:
-    def __init__(self, book: Literal[BIBLE_BOOKS], translation: Literal(BIBLE_TRANSLATIONS) = "KJV", api_key: String|None = None):
+    def __init__(self, book: str, translation: str = "KJV", api_key: str|None = None):
         if translation not in BIBLE_TRANSLATIONS:
             raise ValueError(f"{translation} is not a supported translation. Please choose KJV or ESV.")
         self.translation = translation
         if book not in BIBLE_BOOKS:
-            raise ValueError(f"Invalid value for book: {value}")
+            raise ValueError(f"Invalid value for book: {book}")
         self.title = book
         self.api_key = api_key
 
-    def __str__(self):
+    def __repr__(self):
         return f"BibleBook<{self.title}>"
 
     def __getitem__(self, index):
@@ -178,17 +177,17 @@ class BibleBook:
         return tuple(BibleChapter(self.title, num, self.translation, self.api_key) for num in range(1, BIBLE_CHAPTERS[self.title]+1))
 
 class Bible:
-    def __init__(self, translation: Literal(BIBLE_TRANSLATIONS) = "KJV", api_key: String|None = None):
+    def __init__(self, translation: str = "KJV", api_key: str|None = None):
         if translation not in BIBLE_TRANSLATIONS:
             raise ValueError(f"{translation} is not a supported translation. Please choose KJV or ESV.")
         self.translation = translation
         self.api_key = api_key
 
-    def __str__(self):
+    def __repr__(self):
         return "<pible Bible class>"
 
     def __getitem__(self, book):
-        return BibleChapter(book, self.translation, self.api_key)
+        return BibleBook(book, self.translation, self.api_key)
 
     @property
     def books(self):
