@@ -176,3 +176,20 @@ class BibleBook:
     @property
     def chapters(self):
         return tuple(BibleChapter(self.title, num, self.translation, self.api_key) for num in range(1, BIBLE_CHAPTERS[self.title]+1))
+
+class Bible:
+    def __init__(self, translation: Literal(BIBLE_TRANSLATIONS) = "KJV", api_key: String|None = None):
+        if translation not in BIBLE_TRANSLATIONS:
+            raise ValueError(f"{translation} is not a supported translation. Please choose KJV or ESV.")
+        self.translation = translation
+        self.api_key = api_key
+
+    def __str__(self):
+        return "<pible Bible class>"
+
+    def __getitem__(self, book):
+        return BibleChapter(book, self.translation, self.api_key)
+
+    @property
+    def books(self):
+        return tuple(BibleBook(book, self.translation, self.api_key) for book in BIBLE_BOOKS)
