@@ -9,5 +9,8 @@ license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
 
+[tool.flit.metadata]
+requires-extra = { ujson = ["ujson"] }
+
 [project.urls]
 Home = "https://github.com/iamjameswalters/pible"
