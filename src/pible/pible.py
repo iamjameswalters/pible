@@ -1,13 +1,11 @@
 from pathlib import Path
+
 try:
     import ujson as json
 except ImportError:
     import json
 
-BIBLE_TRANSLATIONS = (
-    "KJV",
-    "ESV"
-)
+BIBLE_TRANSLATIONS = ("KJV", "ESV")
 
 BIBLE_CHAPTERS = {
     "Genesis": 50,
@@ -47,7 +45,7 @@ BIBLE_CHAPTERS = {
     "Habakkuk": 3,
     "Zephaniah": 3,
     "Haggai": 2,
-    "Zecheriah": 14,
+    "Zechariah": 14,
     "Malachi": 4,
     "Matthew": 28,
     "Mark": 16,
@@ -60,7 +58,7 @@ BIBLE_CHAPTERS = {
     "Galatians": 6,
     "Ephesians": 6,
     "Philippians": 4,
-    "Collossians": 4,
+    "Colossians": 4,
     "1 Thessalonians": 5,
     "2 Thessalonians": 5,
     "1 Timothy": 6,
@@ -71,115 +69,166 @@ BIBLE_CHAPTERS = {
     "James": 5,
     "1 Peter": 5,
     "2 Peter": 3,
-    "1 John": 5, 
-    "2 John": 1, 
+    "1 John": 5,
+    "2 John": 1,
     "3 John": 1,
     "Jude": 1,
-    "Revelation": 22
+    "Revelation": 22,
 }
 
 BIBLE_BOOKS = tuple(BIBLE_CHAPTERS.keys())
 
-JSON_FILES = {book: f"{book.replace(' ', '')}.json" for book in BIBLE_BOOKS}
 
 class BibleVerse:
-    def __init__(self, book: str, chapter: int, verse: int, text: str, translation: str = "KJV", api_key: str|None = None):
+    text = ""
+
+    def __init__(
+        self,
+        book: str,
+        chapter: int,
+        verse: int,
+        translation: str = "KJV",
+        api_key: str | None = None,
+    ):
         if translation not in BIBLE_TRANSLATIONS:
-            raise ValueError(f"{translation} is not a supported translation. Please choose KJV or ESV.")
+            raise ValueError(
+                f"{translation} is not a supported translation. Please choose KJV or ESV."
+            )
         self.translation = translation
         if book not in BIBLE_BOOKS:
-            raise ValueError(f"Invalid value for book: {value}")
-        self.book_title = book
-        if (chapter < 1) or (chapter > BIBLE_CHAPTERS[self.book_title]):
-            raise ValueError(f"{self.book_title} does not contain chapter {chapter}.")
-        self.chapter_number = chapter
-        self.verse_number = verse
-        self.text = text
+            raise ValueError(
+                f"Invalid value for book: {book}. Must be one of: {BIBLE_BOOKS}"
+            )
+        self._book_title = book
+        if (chapter < 1) or (chapter > BIBLE_CHAPTERS[self._book_title]):
+            raise ValueError(f"{self._book_title} does not contain chapter {chapter}.")
+        self._chapter_number = chapter
+        self._verse_number = verse
         self.api_key = api_key
 
     @property
     def book(self):
-        return BibleBook(self.book_title, self.translation, self.api_key)
+        return BibleBook(self._book_title, self.translation, self.api_key)
 
     @property
     def chapter(self):
-        return BibleChapter(self.book_title, self.chapter_number, self.translation, self.api_key)
+        return BibleChapter(
+            self._book_title, self._chapter_number, self.translation, self.api_key
+        )
+
+    def __repr__(self):
+        return f"BibleVerse<{self._book_title} {self._chapter_number}:{self._verse_number}>"
+
+    def __str__(self):
+        if self.text == "":
+            match self.translation:
+                case "KJV":
+                    json_file = (
+                        Path(__file__).parent
+                        / f"kjv_json/{self._book_title.replace(' ', '')}.json"
+                    )
+                    with open(json_file, mode="r", encoding="utf8") as file:
+                        data = json.loads(file.read())
+                    chapter = data[str(self._chapter_number)]
+                    try:
+                        verse_text = chapter[str(self._verse_number)]
+                    except KeyError:
+                        raise IndexError(
+                            f"{self._book_title} chapter {self._chapter_number} does not contain verse {self._verse_number}."
+                        )
+                    self.text = verse_text
+                case "ESV":
+                    print("ESV support is still under construction.")
+        return self.text
+
 
 class BibleChapter:
-    def __init__(self, book: str, chapter: int, translation: str = "KJV", api_key: str|None = None):
+    def __init__(
+        self,
+        book: str,
+        chapter: int,
+        translation: str = "KJV",
+        api_key: str | None = None,
+    ):
         if translation not in BIBLE_TRANSLATIONS:
-            raise ValueError(f"{translation} is not a supported translation. Please choose KJV or ESV.")
+            raise ValueError(
+                f"{translation} is not a supported translation. Please choose KJV or ESV."
+            )
         self.translation = translation
         if book not in BIBLE_BOOKS:
-            raise ValueError(f"Invalid value for book: {value}")
-        self.book_title = book
-        if (chapter < 1) or (chapter > BIBLE_CHAPTERS[self.book_title]):
-            raise IndexError(f"{self.book_title} does not contain chapter {chapter}.")
-        self.chapter = chapter
+            raise ValueError(
+                f"Invalid value for book: {book}. Must be one of: {BIBLE_BOOKS}"
+            )
+        self._book_title = book
+        if (chapter < 1) or (chapter > BIBLE_CHAPTERS[self._book_title]):
+            raise IndexError(f"{self._book_title} does not contain chapter {chapter}.")
+        self._chapter_number = chapter
         self.api_key = api_key
 
     @property
     def book(self):
-        return BibleBook(self.book_title, self.translation, self.api_key)
+        return BibleBook(self._book_title, self.translation, self.api_key)
 
-    # @property
-    # def verses(self):
-    #     return tuple(BibleVerse(self.title, num, self.translation, self.api_key) for num in range(1, BIBLE_CHAPTERS[self.title]+1))
-
+    @property
+    def verses(self):
+        return tuple(
+            BibleVerse(
+                self._book_title,
+                self._chapter_number,
+                num,
+                self.translation,
+                self.api_key,
+            )
+            for num in range(1, BIBLE_CHAPTERS[self._book_title] + 1)
+        )
 
     def __getitem__(self, index):
         return BibleVerse(
-                    self.book_title,
-                    self.chapter,
-                    index,
-                    self.translation,
-                    self.api_key
-                )
-        # match self.translation:
-        #     case "KJV":
-        #         json_file = Path("./json") / JSON_FILES[self.book_title]
-        #         with open(json_file, mode="r") as file: 
-        #             data = json.loads(file.read())
-        #         chapter = data[str(self.chapter)]
-        #         try:
-        #             verse = chapter[str(index)]
-        #         except KeyError as err:
-        #             raise IndexError(f"{self.title} chapter {self.chapter} does not contain verse {index}.") from err
-        #         return BibleVerse(
-        #             self.book_title,
-        #             self.chapter,
-        #             index,
-        #             self.translation,
-        #             self.api_key
-        #         )
-        #     case "ESV":
-        #         print("ESV support is still under construction.")
+            self._book_title,
+            self._chapter_number,
+            index,
+            self.translation,
+            self.api_key,
+        )
+
+    def __repr__(self):
+        return f"BibleChapter<{self._book_title} {self._chapter_number}>"
 
 
 class BibleBook:
-    def __init__(self, book: str, translation: str = "KJV", api_key: str|None = None):
+    def __init__(self, book: str, translation: str = "KJV", api_key: str | None = None):
         if translation not in BIBLE_TRANSLATIONS:
-            raise ValueError(f"{translation} is not a supported translation. Please choose KJV or ESV.")
+            raise ValueError(
+                f"{translation} is not a supported translation. Please choose KJV or ESV."
+            )
         self.translation = translation
         if book not in BIBLE_BOOKS:
-            raise ValueError(f"Invalid value for book: {book}")
-        self.title = book
+            raise ValueError(
+                f"Invalid value for book: {book}. Must be one of: {BIBLE_BOOKS}"
+            )
+        self._title = book
         self.api_key = api_key
 
     def __repr__(self):
-        return f"BibleBook<{self.title}>"
+        return f"BibleBook<{self._title}>"
 
     def __getitem__(self, index):
-        return BibleChapter(self.title, index, self.translation, self.api_key)
+        return BibleChapter(self._title, index, self.translation, self.api_key)
 
     @property
     def chapters(self):
-        return tuple(BibleChapter(self.title, num, self.translation, self.api_key) for num in range(1, BIBLE_CHAPTERS[self.title]+1))
+        return tuple(
+            BibleChapter(self._title, num, self.translation, self.api_key)
+            for num in range(1, BIBLE_CHAPTERS[self._title] + 1)
+        )
+
 
 class Bible:
-    def __init__(self, translation: str = "KJV", api_key: str|None = None):
+    def __init__(self, translation: str = "KJV", api_key: str | None = None):
         if translation not in BIBLE_TRANSLATIONS:
-            raise ValueError(f"{translation} is not a supported translation. Please choose KJV or ESV.")
+            raise ValueError(
+                f"{translation} is not a supported translation. Please choose KJV or ESV."
+            )
         self.translation = translation
         self.api_key = api_key
 
@@ -191,4 +240,6 @@ class Bible:
 
     @property
     def books(self):
-        return tuple(BibleBook(book, self.translation, self.api_key) for book in BIBLE_BOOKS)
+        return tuple(
+            BibleBook(book, self.translation, self.api_key) for book in BIBLE_BOOKS
+        )
