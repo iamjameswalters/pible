@@ -1,9 +1,4 @@
-from pathlib import Path
-
-try:
-    import ujson as json
-except ImportError:
-    import json
+from translations import esv, kjv
 
 BIBLE_TRANSLATIONS = ("KJV", "ESV")
 
@@ -80,8 +75,6 @@ BIBLE_BOOKS = tuple(BIBLE_CHAPTERS.keys())
 
 
 class BibleVerse:
-    text = ""
-
     def __init__(
         self,
         book: str,
@@ -92,7 +85,7 @@ class BibleVerse:
     ):
         if translation not in BIBLE_TRANSLATIONS:
             raise ValueError(
-                f"{translation} is not a supported translation. Please choose KJV or ESV."
+                f"{translation} is not a supported translation. Must be one of: {BIBLE_TRANSLATIONS}"
             )
         self.translation = translation
         if book not in BIBLE_BOOKS:
@@ -105,6 +98,7 @@ class BibleVerse:
         self._chapter_number = chapter
         self._verse_number = verse
         self.api_key = api_key
+        self.text = self.get_text()
 
     @property
     def book(self):
@@ -119,26 +113,16 @@ class BibleVerse:
     def __repr__(self):
         return f"BibleVerse<{self._book_title} {self._chapter_number}:{self._verse_number}>"
 
+    def get_text(self):
+        match self.translation:
+            case "KJV":
+                return kjv.get_verse_text(self)
+            case "ESV":
+                return esv.get_verse_text(self)
+
     def __str__(self):
         if self.text == "":
-            match self.translation:
-                case "KJV":
-                    json_file = (
-                        Path(__file__).parent
-                        / f"kjv_json/{self._book_title.replace(' ', '')}.json"
-                    )
-                    with open(json_file, mode="r", encoding="utf8") as file:
-                        data = json.loads(file.read())
-                    chapter = data[str(self._chapter_number)]
-                    try:
-                        verse_text = chapter[str(self._verse_number)]
-                    except KeyError:
-                        raise IndexError(
-                            f"{self._book_title} chapter {self._chapter_number} does not contain verse {self._verse_number}."
-                        )
-                    self.text = verse_text
-                case "ESV":
-                    print("ESV support is still under construction.")
+            self.text = self.get_text()
         return self.text
 
 
@@ -171,16 +155,23 @@ class BibleChapter:
 
     @property
     def verses(self):
-        return tuple(
-            BibleVerse(
-                self._book_title,
-                self._chapter_number,
-                num,
-                self.translation,
-                self.api_key,
-            )
-            for num in range(1, BIBLE_CHAPTERS[self._book_title] + 1)
-        )
+        verses = []
+        verse_num = 1
+        while True:
+            try:
+                current_verse = BibleVerse(
+                    self._book_title,
+                    self._chapter_number,
+                    verse_num,
+                    self.translation,
+                    self.api_key,
+                )
+            # when we reach an invalid verse past the end of the chapter, break
+            except IndexError:
+                break
+            verses.append(current_verse)
+            verse_num += 1
+        return tuple(verses)
 
     def __getitem__(self, index):
         return BibleVerse(
