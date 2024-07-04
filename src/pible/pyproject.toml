@@ -8,7 +8,9 @@ authors = [{name = "James Walters", email = "33947683+iamjameswalters@users.nore
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
-requires-extra = { ujson = ["ujson"] }
+
+[project.optional-dependencies]
+ujson = ["ujson"]
 
 [project.urls]
 Home = "https://github.com/iamjameswalters/pible"
