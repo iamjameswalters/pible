@@ -12,19 +12,21 @@ class PibleTests(TestCase):
         bible = pible.Bible()
         john = bible["John"]
         self.assertEqual(repr(john), "BibleBook<John>")
+        self.assertEqual(str(john), "John")
         self.assertEqual(len(john.chapters), 21)
         with self.assertRaises(ValueError):
-            joe = bible["Joe"]
+            not_a_book = bible["Joe"]
 
     def test_bible_chapter_obj(self):
         bible = pible.Bible()
         john = bible["John"]
         john_3 = john[3]
         self.assertEqual(repr(john_3), "BibleChapter<John 3>")
+        self.assertEqual(str(john_3), "3")
         self.assertEqual(len(john_3.verses), 36)
         self.assertEqual(repr(john_3.book), repr(john))
         with self.assertRaises(IndexError):
-            john_99 = john[99]
+            not_a_chapter = john[99]
 
     def test_bible_verse_obj(self):
         bible = pible.Bible()
@@ -37,5 +39,7 @@ class PibleTests(TestCase):
         )
         self.assertEqual(repr(john_3_16.chapter), repr(john[3]))
         self.assertEqual(repr(john_3_16.book), repr(john))
-        with self.assertRaises(IndexError):
+        john_3_17 = john_3_16.next_verse()
+        self.assertEqual(john_3_17.address, "John 3:17")
+        with self.assertRaises(ValueError):
             not_a_verse = john[3][99]
