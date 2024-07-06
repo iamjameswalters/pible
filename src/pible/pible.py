@@ -185,7 +185,7 @@ class BibleChapter:
                     self.api_key,
                 )
             # when we reach an invalid verse past the end of the chapter, break
-            except IndexError:
+            except ValueError:
                 break
             verses.append(current_verse)
             verse_num += 1
