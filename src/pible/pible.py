@@ -1,4 +1,4 @@
-from translations import esv, kjv
+from .translations import esv, kjv
 
 BIBLE_TRANSLATIONS = ("KJV", "ESV")
 
