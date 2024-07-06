@@ -97,6 +97,8 @@ class BibleVerse:
             raise ValueError(f"{self._book_title} does not contain chapter {chapter}.")
         self._chapter_number = chapter
         self._verse_number = verse
+        if self.translation == "ESV" and not api_key:
+            raise ValueError("Using ESV requires an API key from api.esv.org")
         self.api_key = api_key
         self.text = self.get_text()
 
@@ -147,6 +149,8 @@ class BibleChapter:
         if (chapter < 1) or (chapter > BIBLE_CHAPTERS[self._book_title]):
             raise IndexError(f"{self._book_title} does not contain chapter {chapter}.")
         self._chapter_number = chapter
+        if self.translation == "ESV" and not api_key:
+            raise ValueError("Using ESV requires an API key from api.esv.org")
         self.api_key = api_key
 
     @property
@@ -198,6 +202,8 @@ class BibleBook:
                 f"Invalid value for book: {book}. Must be one of: {BIBLE_BOOKS}"
             )
         self._title = book
+        if self.translation == "ESV" and not api_key:
+            raise ValueError("Using ESV requires an API key from api.esv.org")
         self.api_key = api_key
 
     def __repr__(self):
@@ -221,6 +227,8 @@ class Bible:
                 f"{translation} is not a supported translation. Please choose KJV or ESV."
             )
         self.translation = translation
+        if self.translation == "ESV" and not api_key:
+            raise ValueError("Using ESV requires an API key from api.esv.org")
         self.api_key = api_key
 
     def __repr__(self):
