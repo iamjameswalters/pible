@@ -6,9 +6,10 @@ build-backend = "flit_core.buildapi"
 name = "pible"
 authors = [{name = "James Walters", email = "33947683+iamjameswalters@users.noreply.github.com"}]
 license = {file = "LICENSE"}
+description = "A Python library for working with Bible books and verses."
 readme = {file = "README.md", content-type = "text/markdown"}
 classifiers = ["License :: OSI Approved :: MIT License"]
-dynamic = ["version", "description"]
+dynamic = ["version",]
 
 [project.optional-dependencies]
 ujson = ["ujson"]
