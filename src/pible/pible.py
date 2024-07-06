@@ -96,11 +96,11 @@ class BibleVerse:
         if (chapter < 1) or (chapter > BIBLE_CHAPTERS[self._book_title]):
             raise ValueError(f"{self._book_title} does not contain chapter {chapter}.")
         self._chapter_number = chapter
-        self._verse_number = verse
+        self.verse_number = verse
         if self.translation == "ESV" and not api_key:
             raise ValueError("Using ESV requires an API key from api.esv.org")
         self.api_key = api_key
-        self.text = self.get_text()
+        self.text = self._get_text()
 
     @property
     def book(self):
@@ -112,10 +112,14 @@ class BibleVerse:
             self._book_title, self._chapter_number, self.translation, self.api_key
         )
 
-    def __repr__(self):
-        return f"BibleVerse<{self._book_title} {self._chapter_number}:{self._verse_number}>"
+    @property
+    def address(self):
+        return f"{self._book_title} {self._chapter_number}:{self.verse_number}"
 
-    def get_text(self):
+    def __repr__(self):
+        return f"BibleVerse<{self._book_title} {self._chapter_number}:{self.verse_number}>"
+
+    def _get_text(self):
         match self.translation:
             case "KJV":
                 return kjv.get_verse_text(self)
@@ -124,8 +128,18 @@ class BibleVerse:
 
     def __str__(self):
         if self.text == "":
-            self.text = self.get_text()
+            self.text = self._get_text()
         return self.text
+
+    def next_verse(self):
+        try:
+            next_verse = BibleVerse(self._book_title, self._chapter_number, self.verse_number+1, self.translation, self.api_key)
+        except ValueError:
+            if (self._chapter_number+1) <= BIBLE_CHAPTERS[self._book_title]:
+                next_verse = BibleVerse(self._book_title, self._chapter_number+1, 1, self.translation, self.api_key)
+            else:
+                next_verse = None
+        return next_verse
 
 
 class BibleChapter:
@@ -189,6 +203,9 @@ class BibleChapter:
     def __repr__(self):
         return f"BibleChapter<{self._book_title} {self._chapter_number}>"
 
+    def __str__(self):
+        return str(self._chapter_number)
+
 
 class BibleBook:
     def __init__(self, book: str, translation: str = "KJV", api_key: str | None = None):
@@ -208,6 +225,9 @@ class BibleBook:
 
     def __repr__(self):
         return f"BibleBook<{self._title}>"
+
+    def __str__(self):
+        return self._title
 
     def __getitem__(self, index):
         return BibleChapter(self._title, index, self.translation, self.api_key)
