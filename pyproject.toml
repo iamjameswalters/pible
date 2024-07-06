@@ -6,6 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "pible"
 authors = [{name = "James Walters", email = "33947683+iamjameswalters@users.noreply.github.com"}]
 license = {file = "LICENSE"}
+readme = {file = "README.md", content-type = "text/markdown"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dynamic = ["version", "description"]
 
