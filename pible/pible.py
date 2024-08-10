@@ -117,7 +117,9 @@ class BibleVerse:
         return f"{self._book_title} {self._chapter_number}:{self.verse_number}"
 
     def __repr__(self):
-        return f"BibleVerse<{self._book_title} {self._chapter_number}:{self.verse_number}>"
+        return (
+            f"BibleVerse<{self._book_title} {self._chapter_number}:{self.verse_number}>"
+        )
 
     def _get_text(self):
         match self.translation:
@@ -131,12 +133,32 @@ class BibleVerse:
             self.text = self._get_text()
         return self.text
 
+    def __eq__(self, other):
+        if not isinstance(other, BibleVerse):
+            return False
+        return (
+            self.__repr__() == other.__repr__()
+            and self.translation == other.translation
+        )
+
     def next_verse(self):
         try:
-            next_verse = BibleVerse(self._book_title, self._chapter_number, self.verse_number+1, self.translation, self.api_key)
+            next_verse = BibleVerse(
+                self._book_title,
+                self._chapter_number,
+                self.verse_number + 1,
+                self.translation,
+                self.api_key,
+            )
         except ValueError:
-            if (self._chapter_number+1) <= BIBLE_CHAPTERS[self._book_title]:
-                next_verse = BibleVerse(self._book_title, self._chapter_number+1, 1, self.translation, self.api_key)
+            if (self._chapter_number + 1) <= BIBLE_CHAPTERS[self._book_title]:
+                next_verse = BibleVerse(
+                    self._book_title,
+                    self._chapter_number + 1,
+                    1,
+                    self.translation,
+                    self.api_key,
+                )
             else:
                 next_verse = None
         return next_verse
