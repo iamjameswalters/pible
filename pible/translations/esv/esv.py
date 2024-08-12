@@ -18,7 +18,7 @@ def request_from_api(verse):
 
 def get_verse_text(verse):
     data = request_from_api(verse)
-    if data["query"] != verse.address and data["query"][-2:] != " 1":
+    if data["query"] != verse.address and data["query"][-2:] != f" {verse.verse_number}":
         raise ValueError(
             f"{verse._book_title} chapter {verse._chapter_number} does not contain verse {verse.verse_number}."
         )
